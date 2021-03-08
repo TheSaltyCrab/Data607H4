@@ -1,0 +1,70 @@
+---
+title: "Assignment_tidying_data"
+author: "Daniel Sullivan"
+date: "3/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(openintro)
+library(readr)
+library(reshape2)
+```
+import csv
+```{r}
+flight_data <- read.csv('data607H4.csv')
+```
+
+start formating 
+
+For this i started by filtering out the empty rows that were present and then filled the values where the airline data was empty or not included because this is formatted as what looks like a pivot table it was probably omitted by choice to be eisier to look at. next i fixed the column names so that the airline and delay/ontime column was corrected. 
+
+
+
+I was playing around with the melt function from the package reshape2 but after melting and formating i found the data for this data set wasnt the best to format using that function. The code was commented out but is deffinitly an interesting tool that may be interesting for future data sets.
+```{r}
+flight_data<-flight_data%>%
+  filter(Los.Angeles != "NA")
+colnames(flight_data)<-c("air_line", "delay?", "Los_Angeles", "Phoenix", "San_Diego", "San_Francisco", "Seatle")
+flight_data$air_line<- c("ALASKA","ALASKA", "AM WEST","AM WEST")
+
+#flight_melt<- melt(data = flight_data, id.vars = c("air_line", "delay?"), variable.name = )
+
+#flight_gath<- gather(flight_data,)
+
+```
+
+
+Summarize Data
+
+first I wanted to add a sum column to make calculations and summary stats a little more easy.
+
+Next we compare the sums for each airline for delays and arrivals out of all airports.
+```{r}
+flight_data<- flight_data%>%
+  mutate(airport_sum = Los_Angeles+Phoenix+San_Diego+San_Francisco+Seatle)
+
+flight_data%>%
+  filter(air_line=="ALASKA")%>%
+  summarize(Alaska_percent =airport_sum/sum(filter(flight_data,air_line=="ALASKA")$airport_sum))
+flight_data%>%
+  filter(air_line=="AM WEST")%>%
+  summarize(AM_Weast_percent = airport_sum/sum(filter(flight_data,air_line=="AM WEST")$airport_sum))
+
+```
+Above we see that about 87% of Alaska flights are on time and 13% are delayed. for AM West we see that 89% are on time and 10% are delayed. 
+
+
+I then ran a comparison of the two airlines coming out of Los Angeles
+
+```{r}
+flight_data%>%
+  filter(air_line=="ALASKA")%>%
+  summarize(Alaska_percent = Los_Angeles/sum(filter(flight_data,air_line=="ALASKA")$Los_Angeles))
+flight_data%>%
+  filter(air_line=="AM WEST")%>%
+  summarize(AM_Weast_percent = Los_Angeles/sum(filter(flight_data,air_line=="AM WEST")$Los_Angeles))
+```
+Above we see that Alaska has an on time percentage of 89% and Delay percentage of 11% out of Los Angeles while AM West has a on time percentage of 85.5% and delay rate of 14.4%
